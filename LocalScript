@@ -1,0 +1,10 @@
+-- local script !
+
+local knife = script.Parent
+local remote = knife:FindFirstChild("RemoteEvent")
+
+knife.Activated:Connect(function()
+	if remote then
+		remote:FireServer()
+	end
+end)
