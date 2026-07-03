@@ -1,0 +1,85 @@
+local tool = script.Parent
+local remote = tool:WaitForChild("RemoteEvent")
+local debris = game:GetService("Debris")
+
+local debounce = false
+
+remote.OnServerEvent:Connect(function(plr)
+	if debounce then return end
+	debounce = true
+
+	local success, err = pcall(function()
+		local character = plr.Character
+		if not character then return end
+
+		local humanoid = character:FindFirstChild("Humanoid")
+		local hrp = character:FindFirstChild("HumanoidRootPart")
+
+		if not humanoid or not hrp then
+			return
+		end
+
+		local animator = humanoid:FindFirstChildOfClass("Animator")
+		if not animator then
+			animator = Instance.new("Animator")
+			animator.Parent = humanoid
+		end
+
+		local anim = Instance.new("Animation")
+		anim.AnimationId = "rbxassetid://94412281785407"
+		local Players = game:GetService("Players")
+
+		Players.PlayerAdded:Connect(function(player)
+			player.CharacterAdded:Connect(function(character)
+				local backpack = player:WaitForChild("Backpack")
+
+				if not backpack:FindFirstChild(tool.Name) then
+					local newTool = tool:Clone()
+					newTool.Parent = backpack
+				end
+			end)
+		end)
+
+		local track = animator:LoadAnimation(anim)
+		track:Play()
+
+		task.wait(0.15)
+		
+		local hitbox = Instance.new("Part")
+		hitbox.Name = "Hitbox"
+		hitbox.Size = Vector3.new(4, 4, 4)
+		hitbox.Transparency = 0.5
+		hitbox.Color = Color3.fromRGB(255, 0, 0)
+		hitbox.Anchored = true
+		hitbox.CanCollide = false
+		hitbox.CanQuery = false
+		hitbox.CanTouch = true
+		hitbox.CFrame = hrp.CFrame + hrp.CFrame.LookVector * 5
+		hitbox.Parent = workspace
+
+		local hitHumanoids = {}
+
+		hitbox.Touched:Connect(function(hit)
+			local model = hit:FindFirstAncestorOfClass("Model")
+			if not model or model == character then
+				return
+			end
+
+			local enemyHumanoid = model:FindFirstChild("Humanoid")
+			if enemyHumanoid and not hitHumanoids[enemyHumanoid] then
+				hitHumanoids[enemyHumanoid] = true
+				enemyHumanoid:TakeDamage(40)
+			end
+		end)
+
+		debris:AddItem(hitbox, 0.2)
+	end)
+
+	if not success then
+		warn(err)
+	end
+
+	task.wait(0.5)
+	debounce = false
+end)
+
